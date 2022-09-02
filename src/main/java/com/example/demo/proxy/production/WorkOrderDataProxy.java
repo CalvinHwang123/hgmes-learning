@@ -14,6 +14,8 @@ import xyz.erupt.jpa.dao.EruptDao;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static com.example.demo.constant.Constant.STATUS_INIT;
+
 /**
  * @author 一只闲鹿
  */
@@ -25,6 +27,7 @@ public class WorkOrderDataProxy implements DataProxy<WorkOrder> {
     @Override
     public void beforeAdd(WorkOrder workOrder) {
         updateProductionPlanFinishNumber(workOrder);
+        workOrder.setStatus(STATUS_INIT);
     }
 
     @Modifying

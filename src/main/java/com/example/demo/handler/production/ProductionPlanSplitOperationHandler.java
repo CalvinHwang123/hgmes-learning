@@ -17,6 +17,8 @@ import xyz.erupt.jpa.dao.EruptDao;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static com.example.demo.constant.Constant.STATUS_DOWNED;
+
 /**
  * @author 一只闲鹿
  */
@@ -74,6 +76,7 @@ public class ProductionPlanSplitOperationHandler implements OperationHandler<Pro
         workOrder.setPlanStartDate(productionPlanSplit.getPlanStartDate());
         workOrder.setPlanEndDate(productionPlanSplit.getPlanEndDate());
         workOrder.setPriority(productionPlanSplit.getPriority());
+        workOrder.setStatus(STATUS_DOWNED);
         eruptDao.persistAndFlush(workOrder);
         // 拆解数量，回写到生产计划生产数量
         List<WorkOrder> workOrders1 = eruptDao.queryEntityList(WorkOrder.class, "productionPlan.id=" + productionPlan.getId());

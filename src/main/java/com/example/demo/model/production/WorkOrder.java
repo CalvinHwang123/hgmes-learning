@@ -1,13 +1,17 @@
 package com.example.demo.model.production;
 
+import com.example.demo.handler.production.WorkOrderDownOperationHandlerImpl;
+import com.example.demo.handler.production.WorkOrderEndOperationHandlerImpl;
+import com.example.demo.handler.production.WorkOrderOutsourcingOperationHandlerImpl;
+import com.example.demo.handler.production.WorkOrderPauseOperationHandlerImpl;
 import com.example.demo.model.material.MaterialBOM;
 import com.example.demo.model.material.ProcessRoute;
 import com.example.demo.proxy.production.WorkOrderDataProxy;
 import lombok.Data;
 import xyz.erupt.annotation.Erupt;
 import xyz.erupt.annotation.EruptField;
+import xyz.erupt.annotation.sub_erupt.Power;
 import xyz.erupt.annotation.sub_erupt.RowOperation;
-import xyz.erupt.annotation.sub_erupt.Tpl;
 import xyz.erupt.annotation.sub_field.Edit;
 import xyz.erupt.annotation.sub_field.EditType;
 import xyz.erupt.annotation.sub_field.Readonly;
@@ -19,20 +23,71 @@ import xyz.erupt.upms.handler.DictChoiceFetchHandler;
 import javax.persistence.*;
 import java.util.Date;
 
+import static com.example.demo.constant.Constant.*;
+
 /**
  * 生产工单
  */
 @Erupt(
         name = "生产工单",
-        dataProxy = { WorkOrderDataProxy.class }
-        /*,
-        rowOperation = @RowOperation(
-                code = "tpl", title = "模板按钮", type = RowOperation.Type.TPL,
-                tpl = @Tpl(
-                        path = "/tpl/tree-table.html",     //模板文件路径
-                        engine = Tpl.Engine.FreeMarker //缺省值
+        dataProxy = { WorkOrderDataProxy.class },
+        power = @Power(
+                importable = true,
+                export = true
+        ),
+        rowOperation = {
+                @RowOperation(
+                        title = "下达",
+                        icon = "fa fa-level-down",
+                        mode = RowOperation.Mode.MULTI,
+                        operationParam = { "down" },
+                        operationHandler = WorkOrderDownOperationHandlerImpl.class
+                ),
+                @RowOperation(
+                        title = "取消下达",
+                        icon = "fa fa-undo",
+                        mode = RowOperation.Mode.MULTI,
+                        operationParam = { "cancelDown" },
+                        operationHandler = WorkOrderDownOperationHandlerImpl.class
+                ),
+                @RowOperation(
+                        title = "暂停",
+                        icon = "fa fa-pause",
+                        mode = RowOperation.Mode.MULTI,
+                        operationParam = { "pause" },
+                        operationHandler = WorkOrderPauseOperationHandlerImpl.class
+                ),
+                @RowOperation(
+                        title = "取消暂停",
+                        icon = "fa fa-undo",
+                        mode = RowOperation.Mode.MULTI,
+                        operationParam = { "cancelPause" },
+                        operationHandler = WorkOrderPauseOperationHandlerImpl.class
+                ),
+                @RowOperation(
+                        title = "终止",
+                        icon = "fa fa-window-close",
+                        mode = RowOperation.Mode.MULTI,
+                        operationParam = { "end" },
+                        operationHandler = WorkOrderEndOperationHandlerImpl.class
+                ),
+                @RowOperation(
+                        title = "强制完工",
+                        icon = "fa fa-check-square-o",
+                        mode = RowOperation.Mode.MULTI,
+                        operationParam = { "forceFinish" },
+                        operationHandler = WorkOrderEndOperationHandlerImpl.class
+                ),
+                @RowOperation(
+                        title = "工单委外",
+                        icon = "fa fa-user-plus",
+                        mode = RowOperation.Mode.MULTI,
+                        type = RowOperation.Type.ERUPT,
+                        operationParam = { "orderOutsourcing" },
+                        eruptClass = WorkOrderOutsourcing.class,
+                        operationHandler = WorkOrderOutsourcingOperationHandlerImpl.class
                 )
-        )*/
+        }
 )
 @Table(name = "t_work_order")
 @Entity
@@ -100,6 +155,12 @@ public class WorkOrder extends BaseModel {
             )
     )
     private String workOrderType;
+
+    @EruptField(
+            views = @View(title = "状态"),
+            edit = @Edit(title = "状态")
+    )
+    private String status;
 
     @EruptField(
             views = @View(
