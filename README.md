@@ -29,9 +29,52 @@ Spring Boot 实现的 MES 制造执行系统，助力中国制造 2025。
 
 
 
-### 四、系统截图（部分）
+### 四、启动教程
 
-#### 4.1 生产建模
+修改`application.yml`数据库即可。
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://你的IP:3306/你的数据库?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true
+    username: root
+    password: 密码
+```
+
+
+
+可选：启用 Redis 缓存会话，在线用户等
+
+```yaml
+spring
+# cancel comment below
+#  redis:
+#    host: localhost
+
+erupt:
+  # set true
+  redisSession: false
+```
+
+
+
+**如果不想手动创建业务系统菜单，直接执行`sql`目录下的脚本即可。**
+
+
+
+页面访问
+
+http://localhost:7777/
+
+账号 / 密码 
+
+erupt / erupt
+
+
+
+### 五、系统截图（部分）
+
+#### 5.1 生产建模
 
 计量单位
 
@@ -111,7 +154,7 @@ Spring Boot 实现的 MES 制造执行系统，助力中国制造 2025。
 
 
 
-#### 4.2 物料管理
+#### 5.2 物料管理
 
 供应商
 
@@ -173,7 +216,7 @@ Spring Boot 实现的 MES 制造执行系统，助力中国制造 2025。
 
 
 
-#### 4.3 生产管理
+#### 5.3 生产管理
 
 生产计划
 
@@ -187,7 +230,7 @@ Spring Boot 实现的 MES 制造执行系统，助力中国制造 2025。
 
 
 
-### 五、微信交流群、QQ交流群
+### 六、微信交流群、QQ交流群
 
 ![微信群](screenshot/微信群.jpg)
 
@@ -195,5 +238,5 @@ Spring Boot 实现的 MES 制造执行系统，助力中国制造 2025。
 
 
 
-微信群过期的话，可以加作者个人微信: **huangluqian12345**，拉新群。
+微信群过期的话，可以加作者个人微信: **huangluqian12345**（备注 闲鹿MES），拉你进群。
 
