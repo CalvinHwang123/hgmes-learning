@@ -80,7 +80,10 @@ public class ProductionLine extends HyperModel {
     @ManyToOne
     @JoinColumn
     @EruptField(
-            views = @View(title = "产能单位", column = "englishName"),
+            views = {
+                    @View(title = "产能单位", column = "englishName"),
+                    @View(title = "产能单位中文", column = "chineseName")
+            },
             edit = @Edit(
                     title = "产能单位",
                     type = EditType.REFERENCE_TABLE,

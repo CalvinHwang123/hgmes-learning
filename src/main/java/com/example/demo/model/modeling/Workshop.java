@@ -10,6 +10,7 @@ import xyz.erupt.annotation.sub_field.View;
 import xyz.erupt.annotation.sub_field.sub_edit.ReferenceTableType;
 import xyz.erupt.annotation.sub_field.sub_edit.Search;
 import xyz.erupt.jpa.model.BaseModel;
+import xyz.erupt.upms.model.base.HyperModel;
 
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -29,7 +30,7 @@ import javax.persistence.Table;
 )
 @Table(name = "t_workshop")
 @Entity
-public class Workshop extends BaseModel {
+public class Workshop extends HyperModel { // 引用了 Employee 类，如果 views 是数组，则当前类要 extends HyperModel
 
     @EruptField(
             views = @View(title = "车间编码"),
@@ -46,7 +47,11 @@ public class Workshop extends BaseModel {
     @ManyToOne
     @JoinColumn
     @EruptField(
-            views = @View(title = "责任人", column = "name"),
+            views = {
+                    @View(title = "责任人", column = "name"),
+                    // 引用了 Employee 类，如果 views 是数组，则当前类要 extends HyperModel
+                    @View(title = "责任人工号", column = "employeeNo")
+            },
             edit = @Edit(
                     title = "责任人",
                     type = EditType.REFERENCE_TABLE,
