@@ -15,6 +15,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author 一只闲鹿
@@ -73,12 +75,12 @@ public class ModelUtil {
                     // 属性值
                     Object value = field.get(t);
                     String expr = " 1 = 1 and "
-                            + field.getName()
+                            + humpToLine(field.getName())
                             + " = '"
                             + value
                             + "' "
                             + idExpr;
-                    // 这里使用 JPA 查询 eruptDao.queryEntityList 会报错，因为 calzz 类可能使用 @OneToMany，而详情表数据有的还未保存
+                    // 这里使用 JPA 查询 eruptDao.queryEntityList 会报错，因为 clazz 类可能使用 @OneToMany，而详情表数据有的还未保存
                     // 会报错：org.hibernate.PersistentObjectException: detached entity passed to persist: xxx
 //                List<?> list = eruptDao.queryEntityList(clazz, expr);
                     String sql = " select count(*) count from " + tableName + " where " + expr;
@@ -228,6 +230,18 @@ public class ModelUtil {
         }
         // 字段找不到返回 null
         return null;
+    }
+
+    /** 驼峰转下划线 */
+    private static String humpToLine(String str) {
+        Pattern humpPattern = Pattern.compile("[A-Z]");
+        Matcher matcher = humpPattern.matcher(str);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, "_" + matcher.group(0).toLowerCase());
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
     }
 
 }
