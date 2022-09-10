@@ -19,6 +19,10 @@ import java.util.Date;
 @Entity
 public class ProcessRouteWorkingProcedureMaterialDemand extends BaseModel {
 
+        // 定义关联类
+        @ManyToOne
+        private ProcessRouteWorkingProcedure processRouteWorkingProcedure;
+
         @EruptField(
                 views = @View(
                         title = "物料编码"
