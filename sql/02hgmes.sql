@@ -2025,14 +2025,7 @@ CREATE TABLE `t_workshop_section`  (
 -- ----------------------------
 -- Table structure for v_workshop_receive
 -- ----------------------------
-DROP TABLE IF EXISTS `v_workshop_receive`;
-CREATE TABLE `v_workshop_receive`  (
-  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '单号',
-  `order_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '单据类型',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '车间收料' ROW_FORMAT = Dynamic;
-
+-- 详见视图 SQL
 -- ----------------------------
 -- Records of v_workshop_receive
 -- ----------------------------

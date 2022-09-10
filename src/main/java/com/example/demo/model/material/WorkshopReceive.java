@@ -34,7 +34,7 @@ import javax.persistence.*;
                 operationHandler = WorkshopReceiveHandlerImpl.class
         )
 )
-@Table(name = "v_workshop_receive")
+@Table(name = "v_workshop_receive") // 视图，不需要创建表
 @Entity
 @Data
 public class WorkshopReceive {
