@@ -1,0 +1,337 @@
+<html>
+<head>
+  <base href="${base}/">
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="ant-design/antd.min.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="ant-design/style.css">
+</head>
+<body>
+<div id="app">
+  <template>
+    <div class="my-antd-container">
+      <a-row>
+        <!--左侧树-->
+        <a-col :xs="24" :sm="24" :md="8" :lg="6" :xl="6" :xxl="6"
+               style="padding: 16px;"
+        >
+          <div style="padding-bottom: 8px;">
+            <!--a-input-search 必须有 div 父元素，不然同级其他组件直接不渲染-->
+            <a-input-search placeholder="Search" style="width: 100%" @search="onSearch" />
+          </div>
+          <a-card class="my-antd-tree-card">
+            <a-tree
+              show-line
+              v-model="checkedKeys"
+              :expanded-keys="expandedKeys"
+              :auto-expand-parent="autoExpandParent"
+              :selected-keys="selectedKeys"
+              :tree-data="treeData"
+              @expand="onExpand"
+              @select="onSelect"
+            />
+          </a-card>
+        </a-col>
+        <!--右侧表格-->
+        <a-col :xs="24" :sm="24" :md="16" :lg="18" :xl="18" :xxl="18"
+               style="padding-left: 8px; padding-right: 16px;"
+        >
+          <div style="padding-top: 16px; padding-bottom: 8px;">
+            <a-button icon="plus" @click="handleAdd">
+              新增
+            </a-button>
+            <a-button icon="delete" ghost @click="handleAdd" type="danger">
+              删除
+            </a-button>
+            <a-button icon="search" ghost @click="handleSearch" type="primary">
+              查询
+            </a-button>
+            <a-button icon="table" @click="handleAdd">
+              表格列控制
+            </a-button>
+
+            <span style="float: right;">
+              <a-button :icon="expand ? 'caret-up' : 'caret-down'" @click="toggle">
+            </a-button>
+            <a-button icon="sync" @click="handleReset">
+              重置条件
+            </a-button>
+            </span>
+          </div>
+          <div id="components-form-demo-advanced-search">
+            <a-form
+              class="ant-advanced-search-form"
+              :form="form"
+              :style="{ padding: expand ? '12px 12px 6px 12px' : '0', border: expand ? '1px solid #d9d9d9' : '0 solid #d9d9d9' }"
+            >
+              <a-row :gutter="24">
+                <a-col
+                  v-for="i in 3"
+                  :key="i"
+                  :xs="24" :sm="24" :md="8" :lg="8" :xl="8" :xxl="8"
+                  :style="{ display: i < count ? 'block' : 'none' }"
+                >
+                  <a-form-item :label="`Field ${i}`">
+                    <a-input
+                      v-decorator="[
+                        `field-${i}`
+                      ]"
+                      @keydown.enter="handleSearch"
+                    />
+                  </a-form-item>
+                </a-col>
+              </a-row>
+            </a-form>
+          </div>
+          <a-locale-provider :locale="locales.zh_CN">
+            <a-table
+              :columns="columns"
+              :data-source="data"
+              :scroll="{  }"
+              size="middle"
+              :bordered="bordered"
+              :row-selection="rowSelection"
+              :pagination="pagination"
+            >
+            <span slot="action" slot-scope="text, record">
+              <a><a-icon type="eye" /></a>
+              <span style="color: #e8e8e8; padding: 5px;">|</span>
+              <a><a-icon type="edit" /></a>
+              <span style="color: #e8e8e8; padding: 5px;">|</span>
+              <a><a-icon type="delete" :style="{ color: '#ff4d4f' }" /></a>
+            </span>
+            </a-table>
+          </a-locale-provider>
+
+        </a-col>
+      </a-row>
+
+      <a-modal
+        title="Title"
+        :dialog-style="{ top: '20px' }"
+        :visible="visible"
+        :confirm-loading="confirmLoading"
+        @ok="handleOk"
+        @cancel="handleCancel"
+      >
+        <p>{{ ModalText }}</p>
+      </a-modal>
+
+      <a-back-top />
+    </div>
+  </template>
+</div>
+<script src="ant-design/vue.min.js"></script>
+<script src="ant-design/moment.min.js"></script>
+<script src="ant-design/antd.min.js"></script>
+<script src="ant-design/axios.min.js"></script>
+<script src="ant-design/antd-with-locales.min.js"></script>
+<script>
+  //如果使用tpl模块则需要通过如下js脚本获取，注意只有登录成功才能获取到token
+  const token = parent.getAppToken().token;
+
+  // 为给定 ID 的 user 创建请求
+  axios({
+    url: '/mes-api/process-route/working-procedure-tree',
+    headers: {
+      token
+    },
+    params: {
+      process_route_id: 1
+    }
+  })
+    .then(function (response) {
+      console.log(response);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+  const { LocaleProvider, locales } = window.antd;
+
+  const treeData = [
+    {
+      title: '0-0',
+      key: '0-0',
+      children: [
+        {
+          title: '0-0-0',
+          key: '0-0-0',
+          children: [
+            { title: '0-0-0-0', key: '0-0-0-0' },
+            { title: '0-0-0-1', key: '0-0-0-1' },
+            { title: '0-0-0-2', key: '0-0-0-2' },
+          ],
+        },
+        {
+          title: '0-0-1',
+          key: '0-0-1',
+          children: [
+            { title: '0-0-1-0', key: '0-0-1-0' },
+            { title: '0-0-1-1', key: '0-0-1-1' },
+            { title: '0-0-1-2', key: '0-0-1-2' },
+          ],
+        },
+        {
+          title: '0-0-2',
+          key: '0-0-2',
+        },
+      ],
+    },
+    {
+      title: '0-1',
+      key: '0-1',
+      children: [
+        { title: '0-1-0-0', key: '0-1-0-0' },
+        { title: '0-1-0-1', key: '0-1-0-1' },
+        { title: '0-1-0-2', key: '0-1-0-2' },
+      ],
+    },
+    {
+      title: '0-2',
+      key: '0-2',
+    },
+  ];
+
+  const columns = [
+    { title: '姓名', dataIndex: 'name', key: 'name' },
+    { title: '年龄', dataIndex: 'age', key: 'age' },
+    {
+      title: '操作',
+      key: 'operation',
+      fixed: 'right',
+      width: 115,
+      align: 'center',
+      scopedSlots: {
+        customRender: 'action'
+      },
+    },
+  ];
+
+  const data = [];
+  for (let i = 0; i < 100; i++) {
+    data.push({
+      name: `Edrward ${i}`,
+      age: 32,
+    });
+  }
+
+  const rowSelection = {
+    fixed: true,
+    onChange: (selectedRowKeys, selectedRows) => {
+      console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+    },
+    onSelect: (record, selected, selectedRows) => {
+      console.log(record, selected, selectedRows);
+    },
+    onSelectAll: (selected, selectedRows, changeRows) => {
+      console.log(selected, selectedRows, changeRows);
+    },
+  };
+
+  var vue = new Vue({
+    el: '#app',
+    data() {
+      return {
+        expandedKeys: ['0-0-0', '0-0-1'],
+        autoExpandParent: true,
+        checkedKeys: ['0-0-0'],
+        selectedKeys: [],
+        treeData,
+
+        bordered: JSON.parse(localStorage.getItem('layout')).bordered,
+        data,
+        columns,
+        rowSelection,
+        pagination: {
+          showSizeChanger: true,
+          showQuickJumper: true,
+          pageSizeOptions: ['10', '20', '30', '50', '100', '300', '500'], // 每页数量选项
+          showTotal: total => `共 ${data.length} 条`, // 显示总数
+
+        },
+
+        zhCN: 'zh-CN',
+
+        expand: true,
+        form: this.$form.createForm(this, { name: 'advanced_search' }),
+
+        ModalText: 'Content of the modal',
+        visible: false,
+        confirmLoading: false,
+      };
+    },
+    watch: {
+      checkedKeys(val) {
+        console.log('onCheck', val);
+      },
+    },
+    methods: {
+      onExpand(expandedKeys) {
+        console.log('onExpand', expandedKeys);
+        // if not set autoExpandParent to false, if children expanded, parent can not collapse.
+        // or, you can remove all expanded children keys.
+        this.expandedKeys = expandedKeys;
+        this.autoExpandParent = false;
+      },
+      onCheck(checkedKeys) {
+        console.log('onCheck', checkedKeys);
+        this.checkedKeys = checkedKeys;
+      },
+      onSelect(selectedKeys, info) {
+        console.log('onSelect', info);
+        this.selectedKeys = selectedKeys;
+      },
+
+      onSearch(value) {
+        console.log(value);
+      },
+      handleAdd() {
+
+      },
+
+      handleSearch(e) {
+        alert('nica day');
+        e.preventDefault();
+        this.form.validateFields((error, values) => {
+          console.log('error', error);
+          console.log('Received values of form: ', values);
+        });
+      },
+
+      handleReset() {
+        this.form.resetFields();
+      },
+
+      toggle() {
+        this.expand = !this.expand;
+      },
+
+      handleAdd() {
+        this.visible = true;
+      },
+      handleOk(e) {
+        this.ModalText = 'The modal will be closed after two seconds';
+        this.confirmLoading = true;
+        setTimeout(() => {
+          this.visible = false;
+          this.confirmLoading = false;
+        }, 2000);
+      },
+      handleCancel(e) {
+        console.log('Clicked cancel button');
+        this.visible = false;
+      },
+    },
+    computed: {
+      count() {
+        return this.expand ? 10 : 0;
+      },
+    },
+    updated() {
+      console.log('updated');
+    },
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,472 @@
+<html>
+<head>
+  <base href="${base}/">
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="ant-design/antd.min.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="ant-design/style.css">
+</head>
+<body>
+<div id="app">
+  <template>
+    <div class="my-antd-container">
+      <a-row>
+        <!--左侧树-->
+        <a-col :xs="24" :sm="24" :md="8" :lg="6" :xl="6" :xxl="6"
+               style="padding: 16px;"
+        >
+          <a-card
+            class="my-antd-tree-card"
+            style="height: 92%"
+          >
+            <!--加上 v-if 才能默认展开-->
+            <a-tree
+              show-line
+              v-if="treeData.length > 0"
+              v-model="checkedKeys"
+              :auto-expand-parent="autoExpandParent"
+              :selected-keys="selectedKeys"
+              :default-expand-all="defaultExpandAll"
+              :tree-data="treeData"
+              @select="onSelect"
+            />
+          </a-card>
+        </a-col>
+        <!--右侧表格-->
+        <a-col :xs="24" :sm="24" :md="16" :lg="18" :xl="18" :xxl="18"
+               style="padding-left: 8px; padding-right: 16px;"
+               v-show="selectedLeaf"
+        >
+          <div style="padding-top: 16px; padding-bottom: 8px;">
+            <a-button v-show="power.add" icon="plus" @click="handleAdd">
+              新增
+            </a-button>
+            <a-button v-show="power.delete" icon="delete" ghost @click="handleAdd" type="danger">
+              删除
+            </a-button>
+            <a-button v-show="power.query" icon="search" ghost @click="handleSearch" type="primary">
+              查询
+            </a-button>
+            <a-button icon="table" @click="handleAdd">
+              表格列控制
+            </a-button>
+
+            <span style="float: right;">
+              <a-button :icon="expand ? 'caret-up' : 'caret-down'" @click="toggle">
+            </a-button>
+            <a-button icon="sync" @click="handleReset">
+              重置条件
+            </a-button>
+            </span>
+          </div>
+          <div id="components-form-demo-advanced-search">
+            <a-form
+              class="ant-advanced-search-form"
+              :form="form"
+              :style="{ padding: expand ? '12px 12px 6px 12px' : '0', border: expand ? '1px solid #d9d9d9' : '0 solid #d9d9d9' }"
+            >
+              <a-row :gutter="24">
+                <a-col
+                  v-for="(field, i) in searchFields"
+                  :key="field.key"
+                  :xs="24" :sm="24" :md="8" :lg="8" :xl="8" :xxl="8"
+                  :style="{ display: i < count ? 'block' : 'none' }"
+                >
+                  <a-form-item :label="field.title">
+                    <a-input
+                      v-if="!field.choiceList"
+                      v-decorator="[
+                        field.dataIndex
+                      ]"
+                      @keydown.enter="handleSearch"
+                    />
+                    <!--<a-select
+                      v-if="field.choiceList && field.choiceList.length > 0"
+                    >
+                      <a-select-option value="lucy">lucy</a-select-option>
+                    </a-select>-->
+                  </a-form-item>
+                </a-col>
+              </a-row>
+            </a-form>
+          </div>
+          <a-locale-provider :locale="locales.zh_CN">
+            <a-table
+              :columns="columns"
+              :data-source="data"
+              :scroll="{  }"
+              size="middle"
+              :bordered="bordered"
+              :row-selection="rowSelection"
+              :pagination="pagination"
+            >
+            <span slot="action" slot-scope="text, record">
+              <a v-show="power.viewDetails"><a-icon type="eye" /></a>
+              <span v-show="power.edit" style="color: #e8e8e8; padding: 5px;">|</span>
+              <a v-show="power.edit"><a-icon type="edit" /></a>
+              <span v-show="power.delete" style="color: #e8e8e8; padding: 5px;">|</span>
+              <a v-show="power.delete"><a-icon type="delete" :style="{ color: '#ff4d4f' }" /></a>
+            </span>
+            </a-table>
+          </a-locale-provider>
+
+        </a-col>
+      </a-row>
+
+      <a-modal
+        title="新增"
+        :dialog-style="{ top: '20px' }"
+        :visible="visible"
+        :confirm-loading="confirmLoading"
+        @ok="handleOk"
+        @cancel="handleCancel"
+      >
+        <p>{{ ModalText }}</p>
+      </a-modal>
+
+      <a-back-top />
+    </div>
+  </template>
+</div>
+<script src="ant-design/vue.min.js"></script>
+<script src="ant-design/moment.min.js"></script>
+<script src="ant-design/antd.min.js"></script>
+<script src="ant-design/axios.min.js"></script>
+<script src="ant-design/antd-with-locales.min.js"></script>
+<script src="ant-design/common.js"></script>
+<script>
+  //如果使用tpl模块则需要通过如下js脚本获取，注意只有登录成功才能获取到token
+  const token = parent.getAppToken().token;
+
+  const { LocaleProvider, locales } = window.antd;
+
+  const rowSelection = {
+    fixed: true,
+    onChange: (selectedRowKeys, selectedRows) => {
+      console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+    },
+    onSelect: (record, selected, selectedRows) => {
+      console.log(record, selected, selectedRows);
+    },
+    onSelectAll: (selected, selectedRows, changeRows) => {
+      console.log(selected, selectedRows, changeRows);
+    },
+  };
+
+  var vue = new Vue({
+    el: '#app',
+    data() {
+      return {
+        /*初步认为：defaultExpandAll 和 autoExpandParent 应是互斥的*/
+        autoExpandParent: false,
+        checkedKeys: [],
+        selectedKeys: [],
+        defaultExpandAll: true,
+        treeData: [],
+        selectedLeaf: false, // 是否选择叶子节点，选中右侧表格才显示
+
+        bordered: JSON.parse(localStorage.getItem('layout')).bordered,
+        power: {},
+        data: [],
+        columns: [],
+        searchFields: [],
+        selectedId: -1,
+        rowSelection,
+        pagination: {
+          showSizeChanger: true,
+          showQuickJumper: true,
+          pageSizeOptions: ['10', '20', '30', '50', '100', '300', '500'], // 每页数量选项
+          showTotal: total => `共 ${data.length} 条`, // 显示总数
+        },
+        tableName: '',
+
+        zhCN: 'zh-CN',
+        expand: true,
+        form: this.$form.createForm(this, { name: 'advanced_search' }),
+
+        ModalText: 'Content of the modal',
+        visible: false,
+        confirmLoading: false,
+      };
+    },
+    watch: {
+      checkedKeys(val) {
+        console.log('onCheck', val);
+      },
+    },
+    methods: {
+      onCheck(checkedKeys) {
+        console.log('onCheck', checkedKeys);
+        this.checkedKeys = checkedKeys;
+      },
+      onSelect(selectedKeys, info) {
+        this.selectedLeaf = false;
+        console.log('onSelect', info);
+        this.selectedKeys = selectedKeys;
+        // key 带有 _ 表示叶子节点
+        if (this.selectedKeys && this.selectedKeys.length > 0 && this.selectedKeys[0].indexOf('_') !== -1) {
+          this.selectedLeaf = true;
+          this.getBuildInfo(selectedKeys[0]);
+          this.getTableInfo();
+        }
+      },
+      getTree() {
+        let that = this;
+        axios({
+          url: '/mes-api/process-route/working-procedure-tree',
+          headers: {
+            token
+          },
+          params: {
+            process_route_id: getQueryString('process_route_id')
+          }
+        })
+          .then(function (response) {
+            // console.log(response);
+            const data = response.data.data;
+            if (data && data.length > 0) {
+              data.forEach(d => {
+                let nodeData = {
+                  key: d.procedure_code,
+                  title: d.procedure_name,
+                  children: [
+                    {
+                      key: `${d.procedure_code}_wlxq`,
+                      title: '物料需求'
+                    },
+                    {
+                      key: `${d.procedure_code}_jyxq`,
+                      title: '检验需求'
+                    },
+                    {
+                      key: `${d.procedure_code}_sbxq`,
+                      title: '设备需求'
+                    },
+                    {
+                      key: `${d.procedure_code}_gjxq`,
+                      title: '工具需求'
+                    },
+                    {
+                      key: `${d.procedure_code}_gycs`,
+                      title: '工艺参数'
+                    },
+                    {
+                      key: `${d.procedure_code}_wjxq`,
+                      title: '文件需求'
+                    }
+                  ]
+                };
+                that.treeData.push(nodeData);
+              });
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+
+      },
+      getTree2() {
+        let that = this;
+        axios({
+          url: '/erupt-api/data/ProcessRoute/' + getQueryString('process_route_id'),
+          headers: {
+            token,
+            erupt: 'ProcessRoute'
+          }
+        })
+          .then(function (response) {
+            // console.log(response);
+            const data = response.data.processRouteWorkingProcedures;
+            if (data && data.length > 0) {
+              data.forEach(d => {
+                let nodeData = {
+                  key: d.workingProcedureCode,
+                  title: d.workingProcedure_name,
+                  children: [
+                    {
+                      key: `${d.id}_${d.workingProcedureCode}_wlxq`,
+                      title: '物料需求'
+                    },
+                    {
+                      key: `${d.id}_${d.workingProcedureCode}_jyxq`,
+                      title: '检验需求'
+                    },
+                    {
+                      key: `${d.id}_${d.workingProcedureCode}_sbxq`,
+                      title: '设备需求'
+                    },
+                    {
+                      key: `${d.id}_${d.workingProcedureCode}_gjxq`,
+                      title: '工具需求'
+                    },
+                    {
+                      key: `${d.id}_${d.workingProcedureCode}_gycs`,
+                      title: '工艺参数'
+                    },
+                    {
+                      key: `${d.id}_${d.workingProcedureCode}_wjxq`,
+                      title: '文件需求'
+                    }
+                  ]
+                };
+                that.treeData.push(nodeData);
+              });
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+
+      },
+      async getBuildInfo(selectedKey) {
+        this.columns = [];
+        this.searchFields = [];
+        // selectedKey 格式 id_工序编码_需求名称
+        const key = selectedKey.split('_')[2];
+        this.selectedId = selectedKey.split('_')[0] * 1;
+        let url = '/erupt-api/build/';
+        let headers = { token, eruptParent: '' };
+        switch (key) {
+          // 物料需求
+          case 'wlxq':
+            this.tableName = 'ProcessRouteWorkingProcedureMaterialDemand';
+            break;
+          // 工具需求
+          case 'jyxq':
+            this.tableName = 'ProcessRouteWorkingProcedureMaterialDemand2';
+            break;
+        }
+        url += this.tableName;
+        headers.erupt = this.tableName;
+        let that = this;
+        await axios({
+          url,
+          headers
+        })
+          .then(function (response) {
+            console.log(response);
+            const data = response.data;
+            that.power = data.power;
+            const eruptFieldModels = data.eruptModel.eruptFieldModels;
+            if (eruptFieldModels && eruptFieldModels.length > 0) {
+              eruptFieldModels.forEach(model => {
+                const eruptFieldJson = model.eruptFieldJson;
+                let title = '';
+                if (model.fieldName !== 'id') {
+                  title = eruptFieldJson.views ? eruptFieldJson.views[0].title : eruptFieldJson.edit.title;
+                }
+                let field = {
+                  title: title,
+                  dataIndex: model.fieldName,
+                  key: model.fieldName
+                };
+                if (model.choiceList) {
+                  field.choiceList = model.choiceList;
+                }
+                if (eruptFieldJson.edit.search.value) {
+                  that.searchFields.push(field);
+                }
+                that.columns.push(field);
+              });
+              that.columns.push({
+                title: '操作',
+                key: 'operation',
+                fixed: 'right',
+                width: 115,
+                align: 'center',
+                scopedSlots: {
+                  customRender: 'action'
+                },
+              });
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      },
+      async getTableInfo() {
+        this.data = [];
+        let url = '/erupt-api/data/table/';
+        let headers = { token, eruptParent: '' };
+        url += this.tableName;
+        headers.erupt = this.tableName;
+        let that = this;
+        await axios({
+          url,
+          headers,
+          method: 'POST',
+          data: {
+            "pageIndex": 1,
+            "pageSize": 10,
+            "condition": [{
+              "key": "process_route_working_procedure_id",
+              "value": this.selectedId
+            }],
+            "sort": ""
+          }
+        })
+          .then(function (response) {
+            console.log(response);
+            const data = response.data;
+            that.data = data.list;
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      },
+
+      onSearch(value) {
+        console.log(value);
+      },
+      handleAdd() {
+
+      },
+
+      handleSearch(e) {
+        alert('nica day');
+        e.preventDefault();
+        this.form.validateFields((error, values) => {
+          console.log('error', error);
+          console.log('Received values of form: ', values);
+        });
+      },
+
+      handleReset() {
+        this.form.resetFields();
+      },
+
+      toggle() {
+        this.expand = !this.expand;
+      },
+
+      handleAdd() {
+        this.visible = true;
+      },
+      handleOk(e) {
+        this.ModalText = 'The modal will be closed after two seconds';
+        this.confirmLoading = true;
+        setTimeout(() => {
+          this.visible = false;
+          this.confirmLoading = false;
+        }, 2000);
+      },
+      handleCancel(e) {
+        console.log('Clicked cancel button');
+        this.visible = false;
+      },
+    },
+    computed: {
+      count() {
+        return this.expand ? 10 : 0;
+      },
+    },
+    updated() {
+      console.log('updated');
+    },
+    created() {
+      this.getTree2();
+    }
+  });
+</script>
+</body>
+</html>

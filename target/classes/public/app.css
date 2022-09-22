@@ -1,0 +1,58 @@
+/* 例：修改登录页样式 */
+layout-passport > .container {
+    background-position: center !important;
+    background-repeat: repeat !important;
+    background-size: cover !important;
+    background-color: #fff !important;
+    background-image: url(https://www.erupt.xyz/demo/login-bg.svg) !important;
+}
+
+layout-passport .title {
+    font-family: Courier New, Menlo, Monaco, Consolas, monospace !important;
+}
+
+layout-passport form {
+    padding: 26px !important;
+    margin: 8px !important;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 3px;
+    box-shadow: 1px 1px 10px rgba(190, 184, 184, 0.3);
+}
+
+.global-footer__copyright{
+    display: none;
+}
+
+/*隐藏忘记密码*/
+.forgot {
+    display: none;
+}
+
+/* 例：调整顶栏颜色 */
+/*.alain-default__header {
+    background: #607D8B
+}*/
+
+/* 美化滚动条 start */
+/*-------滚动条整体样式----*/
+::-webkit-scrollbar {
+    width:8px;
+    height:8px;
+}
+/*滚动条里面小方块样式*/
+::-webkit-scrollbar-thumb {
+    border-radius:100px;
+    -webkit-box-shadow:inset 0 0 5px rgba(0,0,0,0.2);
+    background:rgba(0,0,0,0.1);
+}
+/*滚动条里面轨道样式*/
+::-webkit-scrollbar-track {
+    -webkit-box-shadow:inset 0 0 5px rgba(0,0,0,0.2);
+    border-radius:0;
+    background:rgba(0,0,0,0.1);
+}
+/* 美化滚动条 end */
+
+.alain-default__header-logo-link {
+    font-size: 10px;
+}
